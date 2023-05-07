@@ -2,9 +2,9 @@ import torch
 import numpy as np
 
 class UNet(torch.nn.Module):
-    def __init__(self) -> None:
+    def __init__(self, asEmbedding=False) -> None:
         super().__init__()
-        self.conv1_1 = torch.nn.Conv2d(1, 64, 3, padding="same")
+        self.conv1_1 = torch.nn.Conv2d(65, 64, 3, padding="same")
         self.batchnorm1_1 = torch.nn.BatchNorm2d(64)
         self.conv1_2 = torch.nn.Conv2d(64, 64, 3, padding="same")
         self.batchnorm1_2 = torch.nn.BatchNorm2d(64)
@@ -91,6 +91,6 @@ class UNet(torch.nn.Module):
         x = self.activation(x)
 
         x = self.conv6(x)
-        x = torch.sigmoid(x)
+        x = torch.tanh(x)
         return x
     

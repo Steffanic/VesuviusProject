@@ -9,21 +9,24 @@ from torchvision import transforms
 
 def train():
     # define the transforms
+    # to tensor
+    # then normalize
     transform = transforms.Compose([
-        transforms.ToTensor()
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
     ])
     # Load the dataset
-    dataset = FragmentWithInkCropDataset('train/1', transform=transform)
-    dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
+    dataset = FragmentWithInkCropDataset('train/1', crop_size=256 , transform=transform)
+    dataloader = DataLoader(dataset, batch_size=2, shuffle=True)
 
     # Load the model
     model = UNet()
 
     # Load the loss function
-    loss_function = torch.nn.BCELoss()
+    loss_function = torch.nn.L1Loss()
 
     # Load the optimizer
-    optimizer = torch.optim.Adam(model.parameters())
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
     # Load the summary writer
     writer = SummaryWriter()
@@ -45,22 +48,21 @@ def train():
             print(f"images_batch.shape: {images_batch.shape}")
             print(f"mask.shape: {mask.shape}")
             print(f"target.shape: {target.shape}")
-            for images in images_batch:
-                print(f"images.shape: {images.shape}")
-                optimizer.zero_grad()
-                output = model(images)
-                # stack copies of target to match output shape
-                targets = torch.stack([target[0]] * output.shape[0])
-
-                loss = loss_function(output, targets)
-                loss.backward()
-                optimizer.step()
-                print('Epoch: ', epoch, 'Batch: ', i, 'Loss: ', loss.item())
-                writer.add_scalar('Loss/train', loss.item(), epoch * len(dataloader) + i)
-                writer.add_images('images', images, epoch * len(dataloader) + i)
-                writer.add_images('target', targets.detach().numpy(), epoch * len(dataloader) + i)
-                writer.add_images('output', output, epoch * len(dataloader) + i)
-                writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch * len(dataloader) + i)
+            images_batch = images_batch.reshape(2, -1, 256, 256)
+            print(f"images_batch.shape: {images_batch.shape}")
+            optimizer.zero_grad()
+            output = model(images_batch)
+            # stack copies of target to match output shape
+            targets = torch.stack([target[0]] * output.shape[0])
+            loss = loss_function(output, targets)
+            loss.backward()
+            optimizer.step()
+            print('Epoch: ', epoch, 'Batch: ', i, 'Loss: ', loss.item())
+            writer.add_scalar('Loss/train', loss.item(), epoch * len(dataloader) + i)
+            [writer.add_images('images', images_batch[0][j], epoch * len(dataloader) + i, dataformats="HW") for j in range(len(images_batch))]
+            writer.add_images('target', targets.detach().numpy(), epoch * len(dataloader) + i)
+            writer.add_images('output', output, epoch * len(dataloader) + i)
+            writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch * len(dataloader) + i)
         torch.save(model.state_dict(), 'model.pth')
         torch.save(optimizer.state_dict(), 'optimizer.pth')
 

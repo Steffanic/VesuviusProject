@@ -8,13 +8,13 @@ import torch
 from torchvision import transforms
 
 class FragmentWithInkCropDataset(Dataset):
-    def __init__(self, root_dir, crop_size = 256, transform=None):
+    def __init__(self, root_dir, crop_size = 1, transform=None):
         self.root_dir = root_dir
         self.transform = transform
         self.images = []
         # load the images
         for image_file in os.listdir(root_dir + '/surface_volume'):
-            if int(image_file[:2])<30:
+            if int(image_file[:2])<0:
                 continue
             self.images.append(image_file)
         # load the mask
@@ -43,7 +43,9 @@ class FragmentWithInkCropDataset(Dataset):
             num_horiz_crops = image.size[1]//self.crop_size
             num_vert_crops = image.size[0]//self.crop_size
             image = image.crop(((idx%num_horiz_crops)*self.crop_size, (idx//num_horiz_crops)*self.crop_size, (idx%num_horiz_crops)*self.crop_size+self.crop_size, (idx//num_horiz_crops)*self.crop_size+self.crop_size))
-            images.append(transforms.ToTensor()(image))
+            image = transforms.ToTensor()(image)
+            image = transforms.Normalize((0.5,), (0.5,))(image)
+            images.append(image)
         images = torch.stack(images)
         mask = self.mask
         # also crop the target to match the image
