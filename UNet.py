@@ -91,6 +91,6 @@ class UNet(torch.nn.Module):
         x = self.activation(x)
 
         x = self.conv6(x)
-        x = torch.tanh(x)
+        x = torch.sigmoid(x)
         return x
     

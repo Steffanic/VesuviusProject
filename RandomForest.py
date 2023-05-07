@@ -15,6 +15,9 @@ class RFPixelClassifier():
     def predict(self, X):
         return self.model.predict(X)
     
+    def predict_proba(self, X):
+        return self.model.predict_proba(X)
+    
     def score(self, X, y):
         return self.model.score(X, y)
     
@@ -26,9 +29,9 @@ if __name__ == "__main__":
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
     ])
-    dataset = FragmentWithInkCropDataset('train/1', transform=transforms)
-    dataloader = DataLoader(dataset, batch_size=1_000, shuffle=True)
-    for (i,batch) in enumerate(dataloader):
+    dataset = FragmentWithInkCropDataset('train/1', crop_size=1,transform=transforms)
+    dataloader = DataLoader(dataset, batch_size=400, shuffle=True)
+    for i, batch in enumerate(dataloader):
         images_batch, mask, target = batch
         print(f"images_batch.shape: {images_batch.shape}")
         print(f"mask.shape: {mask.shape}")
@@ -51,14 +54,14 @@ if __name__ == "__main__":
         print("Predicting...")
         pred = model.predict_proba(X)
         print(f"pred.shape: {pred.shape}")
-        print(f"pred: {pred}")
+        print(f"pred: {pred[:,1]}")
         print(f"y: {y}")
         print(f"pred == y: {pred == y}")
-        print(model.feature_importances_)
+        print(model.model.feature_importances_)
         plt.subplot(1, 2, 1)
-        plt.imshow(images_batch.reshape(35, 100, 100)[0])
+        plt.imshow(images_batch.reshape(65, 20, 20)[0])
         plt.subplot(1, 2, 2)
-        plt.imshow(pred[:,1].reshape(1,100, 100))
+        plt.imshow(pred[:,1].reshape(1,20, 20))
         plt.show()
         break
 

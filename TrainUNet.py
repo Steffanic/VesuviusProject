@@ -54,13 +54,13 @@ def train():
             output = model(images_batch)
             # stack copies of target to match output shape
             targets = torch.stack([target[0]] * output.shape[0])
-            loss = loss_function(output, targets)
+            loss = loss_function(output, target)
             loss.backward()
             optimizer.step()
             print('Epoch: ', epoch, 'Batch: ', i, 'Loss: ', loss.item())
             writer.add_scalar('Loss/train', loss.item(), epoch * len(dataloader) + i)
             [writer.add_images('images', images_batch[0][j], epoch * len(dataloader) + i, dataformats="HW") for j in range(len(images_batch))]
-            writer.add_images('target', targets.detach().numpy(), epoch * len(dataloader) + i)
+            writer.add_images('target', target.detach().numpy(), epoch * len(dataloader) + i)
             writer.add_images('output', output, epoch * len(dataloader) + i)
             writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch * len(dataloader) + i)
         torch.save(model.state_dict(), 'model.pth')
