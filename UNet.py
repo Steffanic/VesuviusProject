@@ -2,27 +2,16 @@ import torch
 import numpy as np
 
 class UNet(torch.nn.Module):
-    def __init__(self, asEmbedding=False) -> None:
+    def __init__(self, asEmbedding=False, num_conv_per_block=2, num_pools = 2, num_input_channels=65) -> None:
         super().__init__()
-        self.conv1_1 = torch.nn.Conv2d(65, 64, 3, padding="same")
-        self.batchnorm1_1 = torch.nn.BatchNorm2d(64)
-        self.conv1_2 = torch.nn.Conv2d(64, 64, 3, padding="same")
-        self.batchnorm1_2 = torch.nn.BatchNorm2d(64)
-
-        self.pool1 = torch.nn.MaxPool2d(2)
-
-        self.conv2_1 = torch.nn.Conv2d(64, 128, 3, padding="same")
-        self.batchnorm2_1 = torch.nn.BatchNorm2d(128)
-        self.conv2_2 = torch.nn.Conv2d(128, 128, 3, padding="same")
-        self.batchnorm2_2 = torch.nn.BatchNorm2d(128)
-
-
-        self.pool2 = torch.nn.MaxPool2d(2)
-
-        self.conv3_1 = torch.nn.Conv2d(128, 256, 3, padding="same")
-        self.batchnorm3_1 = torch.nn.BatchNorm2d(256)
-        self.conv3_2 = torch.nn.Conv2d(256, 256, 3, padding="same")
-        self.batchnorm3_2 = torch.nn.BatchNorm2d(256)
+        for block_no in range(num_pools):
+            for conv_no in range(num_conv_per_block):
+                N_input_channels_down = num_input_channels if block_no==0 and conv_no==0 else 32*block_no if conv_no==0 else 32*(block_no+1)
+                N_input_channels_up = 
+                vars()[f"conv{block_no}_{conv_no}_down"] = torch.nn.Conv2d(N_input_channels_down, 32*(block_no+1), 3, padding="same")
+                vars()[f"batchnorm{block_no}_{conv_no}_down"] = torch.nn.BatchNorm2d(32*(block_no+1))
+                vars()[f"conv{block_no}_{conv_no}_up"] = torch.nn.ConvTranspose2d(256, 128, 2, stride=2)
+            vars()[f"pool{block_no}"] = torch.nn.MaxPool2d(2)
 
 
         # now the upsampling path 

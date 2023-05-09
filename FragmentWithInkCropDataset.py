@@ -57,7 +57,7 @@ class FragmentWithInkCropDataset(Dataset):
         target[target>0] = 255
         target = Image.fromarray(target)
         target = transforms.ToTensor()(target)
-        
+       
         # crop the mask
 
 
@@ -66,4 +66,6 @@ class FragmentWithInkCropDataset(Dataset):
 
         if self.transform:
             mask = self.transform(mask)
+        
+        
         return images, mask, target
